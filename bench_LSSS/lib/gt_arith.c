@@ -1,0 +1,37 @@
+
+/* Methods for GT arithmetic (RELIC) */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+
+//#include <openabe/openabe.h>
+//#include <openabe/zsymcrypto.h>
+  
+#include "gt_arith.h"
+
+void gt_ar_init(gt_t *e) {                               
+   fp12_null(*e); fp12_new(*e);
+   //fp12_set_dig(*e, 1);
+}                                                                               
+
+void gt_ar_set_to_infinity(gt_t *e) {                    
+    fp12_null(*e); fp12_new(*e);
+    fp12_set_dig(*e, 1);                                                }                                                                               
+
+void gt_ar_mul_op(gt_t z, gt_t x, gt_t y) {          
+   fp12_mul_lazyr(z, x, y);                                                      
+}                                                                               
+void gt_ar_div_op(gt_t z, gt_t x, gt_t y){          
+   fp12_inv(z, y);                                                        fp12_mul_lazyr(z, x, z);                                           
+}                                                                               
+
+void gt_ar_exp_op(gt_t y, gt_t x, bn_t r) {        
+   fp12_exp(y, x, r);                                                            
+}                                                                            
+
+int gt_ar_is_unity_check(gt_t r) {                       
+  return (fp12_cmp_dig(r, 1)) == 0;                                             
+} 
+
