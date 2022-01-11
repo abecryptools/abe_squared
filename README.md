@@ -40,3 +40,6 @@ make bench
 
 When compilation has finished, run the script run_all_benchmarks.sh in each directory. By default, it reports the number of cycles per operation based on the number of attributes from 1 to 100.
 
+## Notes
+
+- This project contains and uses data structures and algorithms that are part of the open source cryptographic library OpenABE (https://github.com/zeutro/openabe).
