@@ -110,17 +110,15 @@ int main(int argc, char **argv) {
 
     /* options */
 
-
     /* internal data structures */
 
-
-    struct master_key msk;                                                 struct public_key_wat11_i_oe mpk;
+    struct master_key msk;
+    struct public_key_wat11_i_oe mpk;
 
     init_master_key(N_ATTR, &msk);
     init_public_key_wat11_i_oe(N_ATTR, &mpk);
 
-    /* 1. generateParams Waters (master public key, secret key)
-     * */
+    /* 1. generate params */
 
     unique_ptr<L_OpenABEFunctionInput> keyFuncInput = nullptr;
     keyFuncInput = L_createAttributeList(keyInput);
@@ -147,9 +145,6 @@ int main(int argc, char **argv) {
         g1_new(t_pre_g[i]);
         g2_new(t_pre_h[i]);
     }
-
-
-
 
     const vector<string> *attrStrings = attrList->getAttributeList();
 
@@ -239,7 +234,6 @@ int main(int argc, char **argv) {
     struct ciphertext_wat11_i_oe CT_A;
     L_OpenABELSSS lsss(1);
     L_OpenABELSSSRowMap lsssRows;
-    //= lsss.getRows();
 
     for(int j=0; j<NTESTS; j++)
     {
@@ -301,15 +295,8 @@ int main(int argc, char **argv) {
     bn_t pack_bn[N_ATTR];
     g1_t pairing_g1[N_ATTR + 2];
     g2_t pairing_g2[N_ATTR + 2];
-    // MVE: could you change these ^ two to
-    // g1_t pairing_g1[N_ATTR + 2];
-    // g2_t pairing_g2[N_ATTR + 2];
 
     for (auto it = lsssRows.begin(); it != lsssRows.end(); ++it) {
-
-
-
-
         g2_null(pack_g2[i]); g2_new(pack_g2[i]);
         bn_null(pack_bn[i]); bn_new(pack_bn[i]);
 
@@ -334,7 +321,6 @@ int main(int argc, char **argv) {
             bn_copy(pack_bn[i], it->second.element().m_ZP);
             g1_mul(CT_A.C_2[i].c_attr, CT_A.C_2[i].c_attr, it->second.element().m_ZP);
 
-            // MVE: could you add:
             g1_neg(CT_A.C_2[i].c_attr, CT_A.C_2[i].c_attr);
             g1_copy(pairing_g1[i], CT_A.C_2[i].c_attr);
             g2_copy(pairing_g2[i], sk.attributes[i].k_attr);
@@ -343,9 +329,7 @@ int main(int argc, char **argv) {
         }
 
         g2_mul_sim_lot(C1_prod, pack_g2, pack_bn, N_ATTR);
-
-        // MVE: could you change the following lines...
-        // MVE: ...to the following:
+        
         g2_copy(pairing_g2[N_ATTR], sk.K);
         g2_copy(pairing_g2[N_ATTR + 1], C1_prod);
         g1_copy(pairing_g1[N_ATTR], CT_A.C_PRIMA);

@@ -8,14 +8,9 @@
 #include <iostream>
 #include <string>
 #include <cassert>
-//#include <openabe/openabe.h>
-//#include <openabe/zsymcrypto.h>
 
- #include "bench_defs.h"
+#include "bench_defs.h"
 using namespace std;
-//using namespace oabe;
-//using namespace oabe::crypto;
-
 
 long long cpucycles(void)
 {
