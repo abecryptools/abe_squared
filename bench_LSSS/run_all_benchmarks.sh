@@ -1,7 +1,5 @@
 #!/bin/sh
 
-#../benchmark/turbo-boost.sh disable
-
 echo "bls-12-381"
 
 ./bench_all_rw13_oe_1_bls_12_381 1

@@ -1,10 +1,25 @@
+/* 
+ * This file is part of the ABE Squared (https://github.com/abecryptools/abe_squared).
+ * Copyright (c) 2022 Antonio de la Piedra, Marloes Venema and Greg Alpár
+ * 
+ * This program is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /* simplified access tructures for the ABE-squared benchmark */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include "LSSS.h"
-
 
 // openabe helpers
 
@@ -84,7 +99,6 @@ void calculate_coefficient(uint32_t index, uint32_t threshold, uint32_t total, b
 void poly_eval(bn_t * coeff_array, uint32_t x, bn_t result)
 {
 
-  //L_ZP share, xpow, tmp_1, tmp_2, tmp_3;
   bn_t share, xpow, tmp_1, tmp_2, tmp_3;
   unsigned int i = 0;
 
@@ -97,21 +111,17 @@ void poly_eval(bn_t * coeff_array, uint32_t x, bn_t result)
   bn_t order_tmp; bn_null(order_tmp); bn_new(order_tmp); bn_zero(order_tmp);                                     
 
   ep_curve_get_ord(order_tmp);                            
-  //share.setOrder(order_tmp);
-  //xpow.setOrder(order_tmp);
 
   bn_t to_bn; bn_null(to_bn); bn_new(to_bn);
 
   for (int i = 0; i < 2; i++) {
     bn_set_dig(tmp_3, i);
     bn_mxp(tmp_2, xpow, tmp_3, order_tmp);
-    //bn_t_mul(tmp_1, coeff_array[i], tmp_2, order_tmp);
 
     bn_mul(tmp_1, coeff_array[i], tmp_2);                                    
     bn_mod(tmp_1, tmp_1, order_tmp);
 
     bn_add(share, share, tmp_1); 
-    //i++;
   }
 
   bn_copy(result, share);
@@ -124,8 +134,6 @@ void add_share(bn_t e, int i, struct LSSS *shares)
   bn_null(shares[i-1].attr); bn_new(shares[i-1].attr);
   bn_copy(shares[i-1].coeff_or_share, e);
   bn_set_dig(shares[i-1].attr, i);
-  //L_OpenABELSSSElement lsssElement("attr" + to_string(i),  elt);
-  //this->m_ResultMap["attr" + to_string(i)] = lsssElement;
 }
 
 void native_share_secret_access_tree_and(bn_t elt, int n_attr, struct LSSS *shares)
@@ -133,10 +141,9 @@ void native_share_secret_access_tree_and(bn_t elt, int n_attr, struct LSSS *shar
   bn_t theSecret, order;
 
   bn_null(theSecret); bn_new(theSecret); bn_zero(theSecret);
-  bn_null(order); bn_new(theSecret); //bn_zero(theSecret);
+  bn_null(order); bn_new(theSecret); 
   ep_curve_get_ord(order);
 
-  /* XXX TODO check length */
   bn_t s_list[128];
   int s_list_n = 0;
 
@@ -167,7 +174,6 @@ void native_share_secret_access_tree_and(bn_t elt, int n_attr, struct LSSS *shar
     if (j == 3) {
 
       /* AND */
-      //theSecret = s_list[s_list_n - 1];
       bn_copy(theSecret, s_list[s_list_n - 1]);
 
       for (uint32_t i = 0; i < threshold; i++) {
@@ -188,7 +194,6 @@ void native_share_secret_access_tree_and(bn_t elt, int n_attr, struct LSSS *shar
       break;
     } else {
       /* normal iterations */
-      //theSecret = s_list[s_list_n - 1];
       bn_copy(theSecret, s_list[s_list_n - 1]);
       s_list_n -= 1;
 
@@ -230,13 +235,11 @@ void native_recover_coeff_access_tree_and(int n_attr, struct LSSS *shares)
   bn_null(c); bn_new(c);
   bn_null(one); bn_new(one); bn_set_dig(one, 1);
 
-  /* XXX TODO check length */                                          
   bn_t c_list[128];
   int c_list_n = 0;                                            
   bn_copy(c_list[0], one);                                            
   c_list_n++;         
 
-  // new
   int x = (n_attr*2) - 1;
   int l = n_attr;
   uint32_t threshold = 2, totalSubnodes = 2;
@@ -320,14 +323,10 @@ void native_recover_coeff_access_tree_and(int n_attr, struct LSSS *shares)
 }
 
 
-// precomputed values for AND case
+/* Precomputed values for AND case */
 
 void compute_lambda_values(char  **m, bn_t * v, bn_t * lambda, uint32_t N_ATTR, bn_t order)
 {
-
-    //printf("v --\n");
-    //bn_print(v[0]);
-    //bn_print(v[1]);
 
     bn_t tmp_1; bn_new(tmp_1); 
     bn_t tmp_2; bn_new(tmp_2);
@@ -338,22 +337,11 @@ void compute_lambda_values(char  **m, bn_t * v, bn_t * lambda, uint32_t N_ATTR, 
     for (int i = 0; i < N_ATTR; i++) {
        bn_set_dig(lambda[i], 0);
         for (int j = 0; j < N_ATTR; j++) {
-            //printf("m: %s\n", *((m+i*N_ATTR) + j));
-                       //printf("matrix[%d][%d] is %s\n", i, j, m[i][j]); 
             bn_read_str(tmp_2, *((m+i*N_ATTR) + j), 2, 10);
-            //bn_print(tmp_2);
-
 
             if (tmp_3 < 0) {
                 bn_neg(tmp_2, tmp_2);
             }
-
-            //printf("multiplico: ");
-            //bn_print(v[j]);
-            //bn_print(tmp_2);
-            //bn_mul(tmp_1, v[j], tmp_2);
-            //printf("resultado\n");
-            //bn_print(tmp_1);
 
             bn_t_mul(tmp_1, v[j], tmp_2, order);
             bn_add(lambda[i], lambda[i], tmp_1);

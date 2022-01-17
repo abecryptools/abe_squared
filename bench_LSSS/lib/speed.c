@@ -1,5 +1,6 @@
 
-/* Code for measuring the number of cycles, adapted from NewHope submission */
+/* Code for measuring the number of cycles, adapted from NewHope submission (public domain) */
+
 
 #include "speed.h"
 

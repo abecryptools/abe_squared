@@ -1,13 +1,22 @@
- 
-//#include <openabe/openabe.h>                                          
-//#include <openabe/zsymcrypto.h>  
-#include <stdlib.h>
+/* 
+ * This file is part of the ABE Squared (https://github.com/abecryptools/abe_squared).
+ * Copyright (c) 2022 Antonio de la Piedra, Marloes Venema and Greg Alpár
+ * 
+ * This program is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
+#include <stdlib.h>
 #include "structures_ng.h"
-//#include "zp_arith.h"
-//#include "g1_arith.h"
-//#include "g2_arith.h"
-//#include "gt_arith.h"
 
 int init_ciphertext_wat11_i_ok(const uint32_t n_attr, struct ciphertext_wat11_i_ok *c) {
   c->N_ATTR = n_attr;

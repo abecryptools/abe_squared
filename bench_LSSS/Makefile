@@ -3,20 +3,6 @@
 
 CXXFLAGS = -O3 -funroll-loops -fomit-frame-pointer -finline-small-functions -march=native -mtune=native 
 CXX = g++
-#RELIC_LIB=/usr/local/lib/librelic_s.a
-#RELIC_INCLUDE=/usr/local/include/
-#RELIC_LIB=/home/vmr/work/pairings_project/relic-install-BN254/usr/local/lib/librelic_s.a
-#RELIC_INCLUDE=/home/vmr/work/pairings_project/relic-install-BN254/usr/local/include/
-
-#relic-install-BLS12-381:
-#relic-install-BLS12-638:
-#relic-install-BLS48-575:
-#relic-install-BN254:
-#relic-install-BN-382:
-#relic-install-BLS12-446  
-#relic-install-BLS12-455
-#relic-install-BN446
-
 
 RELIC_LIB_BLS_12_381=../scripts/relic-install-BLS12-381/usr/local/lib/librelic_s.a
 RELIC_INCLUDE_BLS_12_381=../scripts/relic-install-BLS12-381/usr/local/include/
@@ -32,13 +18,6 @@ RELIC_INCLUDE_BN_382=../scripts/relic-install-BN382/usr/local/include/
 
 RELIC_LIB_BN_446=../scripts/relic-install-BN446/usr/local/lib/librelic_s.a
 RELIC_INCLUDE_BN_446=../scripts/relic-install-BN446/usr/local/include/
-
-
-INCLUDE_ARITH_LIB = lib/zp_arith.c lib/g1_arith.c lib/g2_arith.c lib/gt_arith.c lib/structures.c lib/pairing_arith.c
-INCLUDE_LEGACY_LIB = legacy/l_zobject.cpp legacy/l_zfunctioninput.cpp legacy/l_zattributelist.cpp  legacy/l_zpolicy.cpp legacy/parser/l_zdriver.cpp  legacy/parser/zscanner.cpp legacy/parser/zparser.tab.cc legacy/arith/l_zgroup.cpp legacy/arith/l_zelement.c
-ARITH_OBJ = zp_arith.o g1_arith.o g2_arith.o gt_arith.o structures.o pairing_arith.o
-LEGACY_OBJ = l_zobject.o l_zfunctioninput.o l_zattributelist.o l_zpolicy.o l_zdriver.o zscanner.o zparser.tab.o l_zgroup.o l_zelement.o l_zelement_bp.o 
-BLAKE3_OBJ = blake3.o blake3_dispatch.o blake3_portable.o blake3_sse2_x86-64_unix.o blake3_sse41_x86-64_unix.o blake3_avx2_x86-64_unix.o blake3_avx512_x86-64_unix.o
 
 all: bench
 

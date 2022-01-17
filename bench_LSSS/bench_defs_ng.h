@@ -9,6 +9,8 @@
 #include "lib/LSSS.h"
 #include "lib/speed.h"
 
+/* NTESTS is the number of tests per operation during the measurement process. */
+
 #define NTESTS 10000
 
 #endif
