@@ -28,7 +28,7 @@
 #include "bench_defs.h"
 using namespace std;
 
-/* Measurment functions based 
+/* Measurement functions based 
  * on https://github.com/newhopecrypto/newhope/blob/master/ref/speed.c 
  * (public domain)
  */
