@@ -1,15 +1,36 @@
- 
 /* 
-*  AC17 scheme CP-ABE
-*  Small universe
-*  Only correctness check at the end.
-*/
+ * This file is part of the ABE Squared (https://github.com/abecryptools/abe_squared).
+ * Copyright (c) 2022 Antonio de la Piedra, Marloes Venema and Greg Alpár
+ * 
+ * This program is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* 
+ *  AC17 scheme CP-ABE
+ *  Small universe
+ *  Only correctness check at the end.
+ */
 
 #include <iostream>
 #include <string>
 #include <cassert>
 
 #include "../bench_defs.h"
+
+/* Measurement functions based 
+ * on https://github.com/newhopecrypto/newhope/blob/master/ref/speed.c 
+ * (public domain)
+ */
 
 long long cpucycles(void)
 {
@@ -86,10 +107,6 @@ int main(int argc, char **argv) {
 
     }
 
-    std::string keyID = "key0";
-    std::string authID;
-    std::string GID;
-
     struct master_key msk;
     struct public_key_cp mpk;
 
@@ -103,7 +120,7 @@ int main(int argc, char **argv) {
     pc_param_print();
     pc_get_ord(order);
 
-    //* 1. generateParams (master public key, secret key)
+    /* Setup */
 
     unique_ptr<L_OpenABEFunctionInput> keyFuncInput = nullptr;             
     keyFuncInput = L_createAttributeList(keyInput);                      
@@ -119,8 +136,7 @@ int main(int argc, char **argv) {
         exit(-1);
     }  
 
-    // generate precomputation tables
-    // for g, h
+    /* Generate precomputation tables for g, h */
 
     g1_t t_pre_g[RLC_EP_TABLE_MAX];
     g2_t t_pre_h[RLC_EP_TABLE_MAX];
@@ -158,7 +174,7 @@ int main(int argc, char **argv) {
 
     } printf("["); print_results("Results gen param():           ", t, NTESTS);
 
-    //* 2. Key Generation
+    /* Key Generation */
 
     struct secret_key_cp sk;
     init_secret_key_cp(N_ATTR, &sk);
@@ -171,8 +187,6 @@ int main(int argc, char **argv) {
     bn_rand_mod(r, order);
     bn_t r_mul_b; bn_null(r_mul_b); bn_new(r_mul_b);
 
-
-    //cout << "[*] 2. key generation" << endl;
     for(int j=0; j<NTESTS; j++) {
         t[j] = cpucycles();
 
@@ -189,7 +203,8 @@ int main(int argc, char **argv) {
 
     } print_results("Results key gen():           ", t, NTESTS);
 
-    //* 3. Encryption
+    /* Encryption */
+
     unique_ptr<L_OpenABEFunctionInput> funcInput = nullptr;                
 
     g1_t C_1; g2_null(C_1); g2_new(C_1);
@@ -217,7 +232,6 @@ int main(int argc, char **argv) {
     }                                                                  
 
 
-    //cout << "[*] 3. encryption" << endl;
     bn_t s;
     bn_null(s); bn_new(s);
     bn_t ri; bn_null(ri); bn_new(ri);
@@ -237,15 +251,15 @@ int main(int argc, char **argv) {
         int i = 0;
         bn_rand_mod(ri, order);
         g2_mul_fix(CT_A.C_2[0].c_attr, t_pre_h, ri);
- 
+
         for (auto it = lsssRows.begin(); it != lsssRows.end(); ++it) {     
             g1_mul_sim(CT_A.C_1[i].c_attr, mpk.B, it->second.element().m_ZP, mpk.attributes[i].g_b_attr , ri);
-            
-           i++;
+
+            i++;
         }                                                                  
     } print_results("Results encryption():           ", t, NTESTS);
 
-    // 4. Decryption
+    /* Decryption */
 
     g1_t pack_g1[N_ATTR];                                    
     bn_t pack_bn[N_ATTR];                                    
@@ -274,7 +288,9 @@ int main(int argc, char **argv) {
         i++;
     }
 
-    gt_t P_1; gt_null(P_1); gt_new(P_1);                                   gt_t P_2; gt_null(P_2); gt_new(P_2);                                   gt_t final; gt_null(final); gt_new(final);                             //fp12_set_dig(P_2, 1);
+    gt_t P_1; gt_null(P_1); gt_new(P_1);
+    gt_t P_2; gt_null(P_2); gt_new(P_2);
+    gt_t final; gt_null(final); gt_new(final);
 
     for(int j=0; j<NTESTS; j++)  {
 
@@ -308,9 +324,10 @@ int main(int argc, char **argv) {
     } print_results("Results decryption():           ", t, NTESTS);
     printf("]\n");
 
-    // uncomment for correctness check
-    //assert(gt_cmp(z, CT_A.C) == RLC_EQ);
-    //cout << "[*] PASSED" << endl;
+    /* Uncomment for correctness check;
+    * assert(gt_cmp(z, CT_A.C) == RLC_EQ);
+    * cout << "[*] PASSED" << endl;
+    */
 
     return 0;
 }

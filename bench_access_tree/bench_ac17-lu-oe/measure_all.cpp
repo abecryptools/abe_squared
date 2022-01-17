@@ -1,4 +1,20 @@
- 
+/* 
+ * This file is part of the ABE Squared (https://github.com/abecryptools/abe_squared).
+ * Copyright (c) 2022 Antonio de la Piedra, Marloes Venema and Greg Alpár
+ * 
+ * This program is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 /* 
 *  AC17 scheme CP-ABE
 *  optimized encryption
@@ -23,6 +39,10 @@ unsigned char * uint32_to_u_char_array(const uint32_t n) {
       return a;                                                          
  }  
 
+/* Measurement functions based 
+ * on https://github.com/newhopecrypto/newhope/blob/master/ref/speed.c 
+ * (public domain)
+ */
 
 long long cpucycles(void)
 {
@@ -108,8 +128,7 @@ int main(int argc, char **argv) {
     pc_param_print();
     pc_get_ord(order);
 
-    /* 1. generateParams (master public key, secret key)
-     * */
+    /* Setup */
 
     unique_ptr<L_OpenABEFunctionInput> keyFuncInput = nullptr;             
     keyFuncInput = L_createAttributeList(keyInput);                      
@@ -128,8 +147,8 @@ int main(int argc, char **argv) {
 
     g1_rand(mpk.g);
     g2_rand(mpk.h);
-    // generate precomputation tables
-    // for g, h
+    
+    /* Generate precomputation tables for g, h */
 
     g1_t t_pre_g[RLC_EP_TABLE_MAX];
     g2_t t_pre_h[RLC_EP_TABLE_MAX];
@@ -161,13 +180,11 @@ int main(int argc, char **argv) {
 
     printf("["); print_results("Results gen param():           ", t, NTESTS);
 
-    /* 2. Key Generation
-     * */
+    /* Key Generation */
 
     struct secret_key_lu_oe sk;
     init_secret_key_lu_oe(N_ATTR, &sk);
 
-    //cout << "[*] 2. key generation" << endl;
     g1_t map_attr; g1_null(map_attr); g1_new(map_attr); 
     g1_t k_attr; g1_null(k_attr); g1_new(k_attr);
     bn_t exp_tmp_x; bn_null(exp_tmp_x); bn_new(exp_tmp_x); 
@@ -224,9 +241,7 @@ int main(int argc, char **argv) {
 
     } print_results("Results key gen():           ", t, NTESTS);
 
-
-    /* 3. Encryption
-     * */
+    /* Encryption */
 
     unique_ptr<L_OpenABEFunctionInput> funcInput = nullptr;                
 
@@ -286,8 +301,7 @@ int main(int argc, char **argv) {
         }                                                                  
     } print_results("Results encryption():           ", t, NTESTS); 
 
-    /* 4. Decryption
-    */ 
+    /* Decryption */ 
 
     g1_t pack_g1[N_ATTR];
     bn_t pack_bn[N_ATTR];

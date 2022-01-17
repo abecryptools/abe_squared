@@ -27,9 +27,10 @@
 
 extern "C" {                                                                    
   #include "legacy/arith/l_zelement.h"
-  //#include "BLAKE3/blake3.h"                                                             
 }
 
-#define NTESTS 10000
+/* Number of tests per operation during measurement */
+
+#define NTESTS 10
 
 #endif

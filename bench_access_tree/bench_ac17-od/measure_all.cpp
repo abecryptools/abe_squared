@@ -1,10 +1,26 @@
- 
 /* 
-*  AC17 scheme CP-ABE
-*  optimized decryption (OD) 
-*  Small universe
-*  Only correctness check at the end.
-*/
+ * This file is part of the ABE Squared (https://github.com/abecryptools/abe_squared).
+ * Copyright (c) 2022 Antonio de la Piedra, Marloes Venema and Greg Alpár
+ * 
+ * This program is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/* 
+ *  AC17 scheme CP-ABE
+ *  optimized decryption (OD) 
+ *  Small universe
+ *  Only correctness check at the end.
+ */
 
 #include <iostream>
 #include <string>
@@ -12,47 +28,52 @@
 
 #include "../bench_defs.h"
 
+/* Measurement functions based 
+ * on https://github.com/newhopecrypto/newhope/blob/master/ref/speed.c 
+ * (public domain)
+ */
+
 long long cpucycles(void)
 {
-  unsigned long long result;
-  asm volatile(".byte 15;.byte 49;shlq $32,%%rdx;orq %%rdx,%%rax"
-    : "=a" (result) ::  "%rdx");
-  return result;
+    unsigned long long result;
+    asm volatile(".byte 15;.byte 49;shlq $32,%%rdx;orq %%rdx,%%rax"
+            : "=a" (result) ::  "%rdx");
+    return result;
 }
 
 
 static int cmp_llu(const void *a, const void*b)
 {
-  if(*(unsigned long long *)a < *(unsigned long long *)b) return -1;
-  if(*(unsigned long long *)a > *(unsigned long long *)b) return 1;
-  return 0;
+    if(*(unsigned long long *)a < *(unsigned long long *)b) return -1;
+    if(*(unsigned long long *)a > *(unsigned long long *)b) return 1;
+    return 0;
 }
 
 static unsigned long long median(unsigned long long *l, size_t llen)
 {
-  qsort(l,llen,sizeof(unsigned long long),cmp_llu);
+    qsort(l,llen,sizeof(unsigned long long),cmp_llu);
 
-  if(llen%2) return l[llen/2];
-  else return (l[llen/2-1]+l[llen/2])/2;
+    if(llen%2) return l[llen/2];
+    else return (l[llen/2-1]+l[llen/2])/2;
 }
 
 static unsigned long long average(unsigned long long *t, size_t tlen)
 {
-  unsigned long long acc=0;
-  size_t i;
-  for(i=0;i<tlen;i++)
-    acc += t[i];
-  return acc/(tlen);
+    unsigned long long acc=0;
+    size_t i;
+    for(i=0;i<tlen;i++)
+        acc += t[i];
+    return acc/(tlen);
 }
 
 static void print_results(const char *s, unsigned long long *t, size_t tlen)
 {
-  size_t i;
-  for(i=0;i<tlen-1;i++)
-  {
-    t[i] = t[i+1] - t[i];
-  }
-  printf("%llu,", average(t, tlen-1));
+    size_t i;
+    for(i=0;i<tlen-1;i++)
+    {
+        t[i] = t[i+1] - t[i];
+    }
+    printf("%llu,", average(t, tlen-1));
 }
 
 unsigned long long t[NTESTS];
@@ -60,77 +81,76 @@ unsigned long long t[NTESTS];
 using namespace std;
 
 int main(int argc, char **argv) {
-  
 
-  int test_attr = atoi(argv[1]);
 
-  std::string keyInput = "";
-  std::string encInput = "";
- 
-  uint32_t N_ATTR = test_attr;
-  uint32_t * attr_int_list = NULL;                                     
-  attr_int_list = (uint32_t *) malloc(sizeof(uint32_t) * test_attr);  
+    int test_attr = atoi(argv[1]);
 
-  int d = 1;
+    std::string keyInput = "";
+    std::string encInput = "";
 
-  for (int k = 0; k < test_attr; k++) {
-    keyInput = keyInput + "attr" + std::to_string(d);
-    encInput = encInput + "attr" + std::to_string(d); 
+    uint32_t N_ATTR = test_attr;
+    uint32_t * attr_int_list = NULL;                                     
+    attr_int_list = (uint32_t *) malloc(sizeof(uint32_t) * test_attr);  
 
-    if (k < test_attr - 1) {
-      keyInput = keyInput + "|";
-      encInput = encInput + " and ";
+    int d = 1;
+
+    for (int k = 0; k < test_attr; k++) {
+        keyInput = keyInput + "attr" + std::to_string(d);
+        encInput = encInput + "attr" + std::to_string(d); 
+
+        if (k < test_attr - 1) {
+            keyInput = keyInput + "|";
+            encInput = encInput + " and ";
+        }
+
+        attr_int_list[k] = d;
+
+        d++;
+
     }
 
-    attr_int_list[k] = d;
+    struct master_key msk;
+    struct public_key mpk;
 
-    d++;
- 
-  }
+    init_master_key(N_ATTR, &msk);
+    init_public_key(N_ATTR, &mpk);
 
-  struct master_key msk;
-  struct public_key mpk;
+    core_init();
 
-  init_master_key(N_ATTR, &msk);
-  init_public_key(N_ATTR, &mpk);
-   
-  core_init();
+    bn_t order;
+    pc_param_set_any();
+    pc_param_print();
+    pc_get_ord(order);
 
-  bn_t order;
-  pc_param_set_any();
-  pc_param_print();
-  pc_get_ord(order);
+    /* Setup */
 
-  /* 1. generateParams (master public key, secret key)
-   * */
+    unique_ptr<L_OpenABEFunctionInput> keyFuncInput = nullptr;             
+    keyFuncInput = L_createAttributeList(keyInput);                      
 
-  unique_ptr<L_OpenABEFunctionInput> keyFuncInput = nullptr;             
-  keyFuncInput = L_createAttributeList(keyInput);                      
-  
-  if (keyFuncInput == nullptr) {
-    printf("Invalid attribute key input\n");
-    return -1;
-  }
+    if (keyFuncInput == nullptr) {
+        printf("Invalid attribute key input\n");
+        return -1;
+    }
 
-  L_OpenABEAttributeList *attrList = nullptr;                            
- 
-  if ((attrList = dynamic_cast<L_OpenABEAttributeList *>(keyFuncInput.get())) == nullptr) {                                                             
-       printf("Error in attribute list\n");
-       exit(-1);
-  }  
+    L_OpenABEAttributeList *attrList = nullptr;                            
+
+    if ((attrList = dynamic_cast<L_OpenABEAttributeList *>(keyFuncInput.get())) == nullptr) {                                                             
+        printf("Error in attribute list\n");
+        exit(-1);
+    }  
 
     g1_rand(mpk.g);
     g2_rand(mpk.h);
-    // generate precomputation tables
-    // for g, h
+
+    /* Generate precomputation tables for g, h */
 
     g1_t t_pre_g[RLC_EP_TABLE_MAX];
     g2_t t_pre_h[RLC_EP_TABLE_MAX];
 
     for (int i = 0; i < RLC_EP_TABLE; i++) {
-		g1_new(t_pre_g[i]);
-	    g2_new(t_pre_h[i]);
-	}
+        g1_new(t_pre_g[i]);
+        g2_new(t_pre_h[i]);
+    }
 
     gt_new(mpk.A);
     fp12_set_dig(mpk.A, 1);
@@ -159,7 +179,7 @@ int main(int argc, char **argv) {
 
     printf("["); print_results("Results gen param():           ", t, NTESTS);
 
-    /* 2. Key Generation
+    /* Key Generation
      * */
 
     struct secret_key_od sk;
@@ -169,15 +189,15 @@ int main(int argc, char **argv) {
     bn_t exp_tmp_x; bn_null(exp_tmp_x); bn_new(exp_tmp_x); 
     bn_t r; bn_null(r); bn_new(r); 
 
-   bn_t r_mul_b; bn_null(r_mul_b); bn_new(r_mul_b);
+    bn_t r_mul_b; bn_null(r_mul_b); bn_new(r_mul_b);
 
 
     for(int j=0; j<NTESTS; j++) {                                                                t[j] = cpucycles();
-        
+
         bn_rand_mod(r, order);
         bn_t_mul(r_mul_b, r, msk.b, order);
         bn_t_sub_order(exp_tmp_x, msk.alpha, r_mul_b, order);
-        
+
         g2_mul_fix(sk.K, t_pre_h, exp_tmp_x); 
         g2_mul_fix(sk.K_PRIMA, t_pre_h, r); 
 
@@ -188,7 +208,7 @@ int main(int argc, char **argv) {
 
     } print_results("Results key gen():           ", t, NTESTS);
 
-    // 3. Encryption
+    /* Encryption */
 
     unique_ptr<L_OpenABEFunctionInput> funcInput = nullptr;                
 
@@ -235,33 +255,41 @@ int main(int argc, char **argv) {
         int i = 0;
         bn_rand_mod(ri, order);
         g2_mul_fix(CT_A.C_2[0].c_attr, t_pre_h, ri);
- 
+
 
         for (auto it = lsssRows.begin(); it != lsssRows.end(); ++it) {     
             g1_mul_sim(CT_A.C_1[i].c_attr, mpk.B, it->second.element().m_ZP, mpk.attributes[i].g_b_attr, ri);
-           i++;
+            i++;
         }                                                                  
     }
     print_results("Results encryption():           ", t, NTESTS);
 
-    // 4. Decryption
+    /* Decryption */
+
     g1_t pack_g1[N_ATTR];
     bn_t pack_bn[N_ATTR];
     g1_t pairing_g1[N_ATTR];
     g2_t pairing_g2[N_ATTR];
 
-    gt_t P_1; gt_null(P_1); gt_new(P_1);                                   gt_t P_2; gt_null(P_2); gt_new(P_2);                                   gt_t final; gt_null(final); gt_new(final);                             gt_t z; gt_null(z); gt_new(z);                                        
+    gt_t P_1; gt_null(P_1); gt_new(P_1);
+    gt_t P_2; gt_null(P_2); gt_new(P_2);
+    gt_t final; gt_null(final); gt_new(final);
+    gt_t z; gt_null(z); gt_new(z);                                        
     bn_t coeff; 
     bn_null(coeff); bn_new(coeff);
-    gt_t P_3; gt_null(P_3); gt_new(P_3);                                   fp12_set_dig(P_3, 1);      
+    gt_t P_3; gt_null(P_3); gt_new(P_3);
+    fp12_set_dig(P_3, 1);      
 
-    gt_t P_3_prod; gt_null(P_3_prod); gt_new(P_3_prod);                    fp12_set_dig(P_3_prod, 1);      
+    gt_t P_3_prod; gt_null(P_3_prod); 
+    gt_new(P_3_prod);
+    fp12_set_dig(P_3_prod, 1);      
 
-    g1_t C1_prod; g1_null(C1_prod); g1_new(C1_prod);
+    g1_t C1_prod; g1_null(C1_prod);
+    g1_new(C1_prod);
     g1_set_infty(C1_prod);
-    g1_t K_prod; g1_null(K_prod); g1_new(K_prod);
+    g1_t K_prod; g1_null(K_prod);
+    g1_new(K_prod);
     g1_set_infty(K_prod);
-
 
     int i = 0;
 
@@ -280,7 +308,7 @@ int main(int argc, char **argv) {
 
         lsss.l_recoverCoefficients(policy, attrList);    
         lsssRows = lsss.l_getRows();                       
-         i = 0;
+        i = 0;
 
         for (auto it = lsssRows.begin(); it != lsssRows.end(); ++it) {     
             g1_copy(pack_g1[i], CT_A.C_1[i].c_attr);
@@ -301,7 +329,7 @@ int main(int argc, char **argv) {
         g2_copy(pairing_g2[2], sk.K_PRIMA);
 
         pp_map_sim_oatep_k12(z, pairing_g1, pairing_g2, 3);
-   }
+    }
     print_results("Results decryption():           ", t, NTESTS);
     printf("]\n");
 
