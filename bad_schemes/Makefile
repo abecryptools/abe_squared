@@ -3,19 +3,6 @@
 
 CXXFLAGS = -O3 -funroll-loops -fomit-frame-pointer -finline-small-functions -march=native -mtune=native 
 CXX = g++
-#RELIC_LIB=/usr/local/lib/librelic_s.a
-#RELIC_INCLUDE=/usr/local/include/
-#RELIC_LIB=/home/vmr/work/pairings_project/relic-install-BN254/usr/local/lib/librelic_s.a
-#RELIC_INCLUDE=/home/vmr/work/pairings_project/relic-install-BN254/usr/local/include/
-
-#relic-install-BLS12-381:
-#relic-install-BLS12-638:
-#relic-install-BLS48-575:
-#relic-install-BN254:
-#relic-install-BN-382:
-#relic-install-BLS12-446  
-#relic-install-BLS12-455
-#relic-install-BN446
 
 RELIC_LIB=../scripts/relic-install-BLS12-381/usr/local/lib/librelic_s.a
 RELIC_INCLUDE=../scripts/relic-install-BLS12-381/usr/local/include/

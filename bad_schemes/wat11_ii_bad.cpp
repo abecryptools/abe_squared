@@ -1,3 +1,19 @@
+/* 
+ * This file is part of the ABE Squared (https://github.com/abecryptools/abe_squared).
+ * Copyright (c) 2022 Antonio de la Piedra, Marloes Venema and Greg Alpár
+ * 
+ * This program is free software: you can redistribute it and/or modify 
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful, but 
+ * WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License 
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /*
 *  Wat11-I-BAD scheme CP-ABE
@@ -11,6 +27,11 @@
 #include "bench_defs.h"
 
 using namespace std;
+
+/* Measurment functions based 
+ * on https://github.com/newhopecrypto/newhope/blob/master/ref/speed.c 
+ * (public domain)
+ */
 
 long long cpucycles(void)
 {
@@ -57,12 +78,10 @@ static void print_results(const char *s, unsigned long long *t, size_t tlen)
 
 unsigned long long t[NTESTS];
 
-
-
 int main(int argc, char **argv) {
 
+    /* Process input parameters */
 
-    /* input parameters */
     string pt1 = "Testing AC17-CP-ABE...";
     string pt2;
 
@@ -93,24 +112,13 @@ int main(int argc, char **argv) {
 
     }
 
-    std::string keyID = "key0";
-    std::string authID;
-    std::string GID;
-
     core_init();
     bn_t order;
     pc_param_set_any();
     pc_param_print();
     pc_get_ord(order);
 
-
-    printf("Testing CP-ABE context\n");
-    cout << "\tkeyInput: " << keyInput << endl;
-    cout << "\tkeyId: " << keyID << endl;
-
-    /* options */
-
-    /* internal data structures */
+    /* Internal data structures */
 
     struct master_key msk;
     struct public_key_wat11_i_oe mpk;
@@ -118,7 +126,7 @@ int main(int argc, char **argv) {
     init_master_key(N_ATTR, &msk);
     init_public_key_wat11_i_oe(N_ATTR, &mpk);
 
-    /* 1. generate params */
+    /* Setup */
 
     unique_ptr<L_OpenABEFunctionInput> keyFuncInput = nullptr;
     keyFuncInput = L_createAttributeList(keyInput);
@@ -135,8 +143,7 @@ int main(int argc, char **argv) {
         exit(EXIT_FAILURE);
     }
 
-
-    // generate precomputation tables                                 131      // for g, h
+    /* Generate precomputation tables for g, h*/
 
     g1_t t_pre_g[RLC_EP_TABLE_MAX];
     g2_t t_pre_h[RLC_EP_TABLE_MAX];
@@ -179,7 +186,7 @@ int main(int argc, char **argv) {
         }
     } printf("["); print_results("Results gen param():           ", t,     NTESTS);
 
-    // 2. Key Generation
+    /* Key Generation */
 
     struct secret_key sk;
     init_secret_key(N_ATTR, &sk);
@@ -211,7 +218,7 @@ int main(int argc, char **argv) {
     } printf(","); print_results("Results gen param():           ", t,     NTESTS);
 
 
-    // 3. Encryption
+    /* Encryption */
 
     std::string plaintext = pt1;
     unique_ptr<L_OpenABEFunctionInput> funcInput = nullptr;
@@ -276,7 +283,7 @@ int main(int argc, char **argv) {
         }
     } printf(","); print_results("Results gen param():           ", t,     NTESTS);
 
-    // 4. Decryption
+    /* Decryption */
     i = 0;
 
     gt_t P_3_prod; gt_null(P_3_prod); gt_new(P_3_prod);
